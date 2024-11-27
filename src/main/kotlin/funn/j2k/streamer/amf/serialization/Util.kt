@@ -1,14 +1,15 @@
 package funn.j2k.streamer.amf.serialization
 
 import io.ktor.utils.io.*
+import java.io.DataOutputStream
 
 
 // TODO: make compatible with long-string and separate from utf-8
-internal suspend fun ByteWriteChannel.writeString(string: String) {
+internal fun DataOutputStream.writeString(string: String) {
     val bytes = string.encodeToByteArray()
 
     writeShort(bytes.size)
-    writeFully(bytes)
+    write(bytes)
 }
 
 internal suspend fun ByteReadChannel.readString(): String {

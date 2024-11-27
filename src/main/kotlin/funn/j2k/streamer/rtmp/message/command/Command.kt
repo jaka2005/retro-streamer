@@ -65,5 +65,5 @@ sealed class Command(
     data class Pause(val streamId: Int) : Command("pause")
 }
 
-fun Iterable<Command.Connect.AudioCodec>.toFlags(): Int = fold(0) { acc, codec -> acc or codec.flag }
-fun Iterable<Command.Connect.VideoCodec>.toFlags(): Int = fold(0) { acc, codec -> acc or codec.flag }
+fun Iterable<Command.Connect.AudioCodec>.toAFlags(): Int = fold(0) { acc, codec -> acc or codec.flag }
+fun Iterable<Command.Connect.VideoCodec>.toVFlags(): Int = fold(0) { acc, codec -> acc or codec.flag }
