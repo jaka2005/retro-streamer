@@ -3,8 +3,7 @@ package funn.j2k.streamer.rtmp
 import funn.j2k.streamer.Writeable
 import funn.j2k.streamer.write
 import funn.j2k.streamer.write24Bits
-import io.ktor.utils.io.ByteWriteChannel
-import io.ktor.utils.io.writeFully
+import io.ktor.utils.io.*
 
 
 data class Chunk(
@@ -15,15 +14,33 @@ data class Chunk(
         output.write(header)
         output.writeFully(data)
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as Chunk
+
+        if (header != other.header) return false
+        if (!data.contentEquals(other.data)) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = header.hashCode()
+        result = 31 * result + data.contentHashCode()
+        return result
+    }
 }
 
 data class ChunkHeader(
     val fmt: Int,
     val streamId: Int,
-    val timestamp: Int,
-    val messageLength: Int,
-    val messageTypeId: Int,
-    val messageStreamId: Int
+    val timestamp: Int? = null,
+    val messageLength: Int? = null,
+    val messageTypeId: Int? = null,
+    val messageStreamId: Int? = null
 ) : Writeable {
 
     override suspend fun write(output: ByteWriteChannel) {
@@ -42,18 +59,18 @@ data class ChunkHeader(
             }
         }
 
-        val hasExtendedTimestamp = timestamp >= 0xff_ff_ff
-        val coercedTimestamp = if (hasExtendedTimestamp) 0xff_ff_ff else timestamp
+        val hasExtendedTimestamp = timestamp?.let { it >= 0xff_ff_ff }
+        val coercedTimestamp = if (hasExtendedTimestamp == true) 0xff_ff_ff else timestamp
         if (fmt < 3)
-            output.write24Bits(coercedTimestamp)
+            output.write24Bits(coercedTimestamp!!)
         if (fmt < 2) {
-            output.write24Bits(messageLength)
-            output.writeByte(messageTypeId.toByte())
+            output.write24Bits(messageLength!!)
+            output.writeByte(messageTypeId!!.toByte())
         }
         if (fmt == 0)  {
-            output.writeInt(messageStreamId)
+            output.writeInt(messageStreamId!!)
         }
-        if (hasExtendedTimestamp) {
+        if (hasExtendedTimestamp == true) {
             output.writeByte((timestamp shr 24).toByte())
         }
     }

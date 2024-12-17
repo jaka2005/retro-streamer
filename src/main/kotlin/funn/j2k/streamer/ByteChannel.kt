@@ -1,7 +1,6 @@
 package funn.j2k.streamer
 
-import io.ktor.utils.io.ByteReadChannel
-import io.ktor.utils.io.ByteWriteChannel
+import io.ktor.utils.io.*
 
 interface Writeable {
     suspend fun write(output: ByteWriteChannel)
@@ -23,4 +22,11 @@ suspend fun ByteWriteChannel.write24Bits(value: Int) {
     require(value in 0..0xFFFFFF) { "Value must fit in 24 bits" }
     writeShort((value shr 8).toShort())
     writeByte((value and 0xff).toByte())
+}
+
+suspend fun ByteReadChannel.read24Bits(): Int {
+    val firstBits = readShort().toInt()
+    val secondBits = readByte().toInt()
+
+    return (firstBits shl 8) or secondBits
 }
