@@ -8,9 +8,7 @@ import funn.j2k.streamer.rtmp.message.Message.UserControlMessage
 import funn.j2k.streamer.rtmp.message.MessageType
 import funn.j2k.streamer.rtmp.message.stream.InputMessageStream
 import funn.j2k.streamer.rtmp.message.stream.OutputMessageStream
-import funn.j2k.streamer.rtmp.message.stream.fmt
 import funn.j2k.streamer.rtmp.message.stream.readChunkBasicHeader
-import funn.j2k.streamer.rtmp.message.stream.readChunkHeader
 import funn.j2k.streamer.rtmp.message.stream.streamId
 import io.ktor.utils.io.*
 

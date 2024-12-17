@@ -30,8 +30,10 @@ class InputMessageStream private constructor(header: ChunkHeader) {
         chunkBasicHeader: ChunkBasicHeader,
         chunkSize: Int = 128
     ) {
+        if (readingIsComplete) return
+
         val header = input.readChunkHeader(chunkBasicHeader)
-        val readingIsComplete = readData(input, chunkSize)
+        readData(input, chunkSize)
 
         when(header.fmt) {
             0 -> timestamp = header.timestamp!!
@@ -43,15 +45,13 @@ class InputMessageStream private constructor(header: ChunkHeader) {
         }
     }
 
-    private suspend fun readData(input: ByteReadChannel, chunkSize: Int): Boolean {
+    private suspend fun readData(input: ByteReadChannel, chunkSize: Int) {
         val bytesToRead = (fullHeader.messageLength!! - bytesRead).coerceAtMost(chunkSize)
         val bytes = ByteArray(bytesToRead)
         input.readFully(bytes)
 
         bytes.copyInto(rawMessage, 0, bytesRead, bytesRead + bytesToRead)
         bytesRead += bytesRead
-
-        return bytesRead == fullHeader.messageLength!!
     }
 
     companion object {
