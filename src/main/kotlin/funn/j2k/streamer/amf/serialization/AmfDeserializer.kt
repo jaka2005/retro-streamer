@@ -39,7 +39,7 @@ class AmfDeserializer {
             RECORDSET -> error("Recordset not supported")
             XML_DOCUMENT -> readLongString()
             TYPED_OBJECT -> {
-                readString() // TODO: store type somewhere
+                readString()
                 readObject()
             }
             AVMPLUS_OBJECT -> error("AVM+ required by server")

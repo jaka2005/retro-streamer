@@ -4,7 +4,6 @@ import io.ktor.utils.io.*
 import java.io.DataOutputStream
 
 
-// TODO: make compatible with long-string and separate from utf-8
 internal fun DataOutputStream.writeString(string: String) {
     val bytes = string.encodeToByteArray()
 
