@@ -10,6 +10,8 @@ repositories {
 }
 
 dependencies {
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.18.0")
+
     val ktorVersion = "2.3.12"
     implementation("io.ktor:ktor-network:$ktorVersion")
 

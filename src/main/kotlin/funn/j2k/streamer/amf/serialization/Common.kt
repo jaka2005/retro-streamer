@@ -1,5 +1,7 @@
 package funn.j2k.streamer.amf.serialization
 
+typealias AmfObject = Map<String, Any?>
+
 const val UNKNOWN_SIZE = -1 // (U32) -1 as unknown content length (in bytes)
 const val UTF_EMPTY: Short = 0 // empty string
 

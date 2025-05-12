@@ -15,7 +15,8 @@ class InputMessageStream private constructor(header: ChunkHeader) {
         private set
 
     private var timestampDelta = 0
-    private var bytesRead = 0
+    var bytesRead = 0
+        private set
 
     val readingIsComplete get() = bytesRead == fullHeader.messageLength!!
     val messageType get() = MessageType.from(fullHeader.messageTypeId!!)!!
@@ -29,11 +30,11 @@ class InputMessageStream private constructor(header: ChunkHeader) {
         input: ByteReadChannel,
         chunkBasicHeader: ChunkBasicHeader,
         chunkSize: Int = 128
-    ) {
-        if (readingIsComplete) return
+    ): Int {
+        if (readingIsComplete) return 0
 
         val header = input.readChunkHeader(chunkBasicHeader)
-        readData(input, chunkSize)
+        val readBytes = readData(input, chunkSize)
 
         when(header.fmt) {
             0 -> timestamp = header.timestamp!!
@@ -43,15 +44,19 @@ class InputMessageStream private constructor(header: ChunkHeader) {
             }
             3 -> timestamp += timestampDelta
         }
+
+        return header.size + readBytes
     }
 
-    private suspend fun readData(input: ByteReadChannel, chunkSize: Int) {
+    private suspend fun readData(input: ByteReadChannel, chunkSize: Int): Int {
         val bytesToRead = (fullHeader.messageLength!! - bytesRead).coerceAtMost(chunkSize)
         val bytes = ByteArray(bytesToRead)
         input.readFully(bytes)
 
         bytes.copyInto(rawMessage, 0, bytesRead, bytesRead + bytesToRead)
-        bytesRead += bytesRead
+        bytesRead += bytesToRead
+
+        return bytesToRead
     }
 
     companion object {
@@ -64,6 +69,14 @@ class InputMessageStream private constructor(header: ChunkHeader) {
             return InputMessageStream(header).apply { readData(input, chunkSize)  }
         }
     }
+}
+
+val ChunkHeader.size get() = when(fmt) {
+    0 -> 11
+    1 -> 7
+    2 -> 3
+    3 -> 0
+    else -> error("Unsupported fmt: ${fmt}")
 }
 
 suspend fun ByteReadChannel.readChunkHeader(basicHeader: ChunkBasicHeader): ChunkHeader {
@@ -98,6 +111,11 @@ val ChunkBasicHeader.fmt: Int
     get() = first
 val ChunkBasicHeader.streamId: Int
     get() = second
+val ChunkBasicHeader.size: Int get() = when(streamId) {
+    in 0..63 -> 1
+    in 64..319 -> 2
+    else -> 3
+}
 
 suspend fun ByteReadChannel.readChunkBasicHeader(): ChunkBasicHeader {
     val chunkStreamId = readByte().toInt()

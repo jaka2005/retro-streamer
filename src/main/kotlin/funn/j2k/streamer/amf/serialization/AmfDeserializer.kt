@@ -2,15 +2,26 @@ package funn.j2k.streamer.amf.serialization
 
 import funn.j2k.streamer.amf.serialization.AmfType.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.jvm.javaio.toInputStream
 import kotlinx.datetime.Instant
 
 // TODO: make it linear with ordinary stream
 class AmfDeserializer {
     private val storedObjects = mutableListOf<Any?>()
+    var bytesRead = 0
+        private set
+
+    fun reset() {
+        storedObjects.clear()
+        bytesRead = 0
+    }
 
     suspend fun read(data: ByteArray): Any? {
         storedObjects.clear()
-        return ByteReadChannel(data).readData()
+        val channel = ByteReadChannel(data)
+        val result = channel.readData()
+        bytesRead = channel.totalBytesRead.toInt()
+        return result
     }
 
     private suspend fun ByteReadChannel.readData(): Any? {
@@ -46,7 +57,7 @@ class AmfDeserializer {
         }
     }
 
-    private suspend fun ByteReadChannel.readObject(): Map<String, Any?> {
+    private suspend fun ByteReadChannel.readObject(): AmfObject {
         val map = mutableMapOf<String, Any?>()
         storedObjects.add(map)
         while (true) {

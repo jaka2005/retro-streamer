@@ -10,7 +10,7 @@ import io.ktor.utils.io.ByteWriteChannel
 class OutputMessageStream(
     val id: Int,
     val csId: Int,
-    message: Message,
+    message: Message?,
     serializer: AmfSerializer,
     timestamp: Int = 0,
 ) {
@@ -27,9 +27,16 @@ class OutputMessageStream(
     private var format: Int = 0
 
     init {
-        setMessage(message, serializer, timestamp, true)
+        if (message == null) {
+            brokeMessage()
+        } else {
+            setMessage(message, serializer, timestamp, true)
+        }
     }
 
+    fun brokeMessage() {
+        sent = true
+    }
 
     fun setMessage(message: Message, serializer: AmfSerializer, timestamp: Int = 0, reuse: Boolean = false) {
         this.timestamp = timestamp
